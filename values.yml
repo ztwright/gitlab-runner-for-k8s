@@ -1,0 +1,25 @@
+# -- Number of runner pods
+replicaCount: 1
+
+image:
+  repository: gitlab/gitlab-runner
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+gitlab:
+  url: "http://gitlab.example.com:9080/"
+  # NOTE: For production, it is safer to pass the token via an existing K8s Secret 
+  # rather than plain text in the values file.
+  registrationToken: "abcdef123456" 
+  runnerDescription: "Conjur-Enabled-Runner"
+  runnerTags: "conjur-demo"
+  kubernetesImage: "alpine:latest"
+  kubernetesNamespace: "default"
+
+conjur:
+  applianceUrl: "https://<subdomain>.secretsmgr.cyberark.cloud/api"
+  account: "conjur"
+
+rbac:
+  create: true
+  serviceAccountName: "gitlab-runner-sa"

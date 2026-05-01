@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-deployment
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      serviceAccountName: {{ .Values.rbac.serviceAccountName }}
+      containers:
+      - name: runner
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            gitlab-runner register \
+              --non-interactive \
+              --url "{{ .Values.gitlab.url }}" \
+              --registration-token "{{ .Values.gitlab.registrationToken }}" \
+              --executor "kubernetes" \
+              --description "{{ .Values.gitlab.runnerDescription }}" \
+              --tag-list "{{ .Values.gitlab.runnerTags }}" \
+              --kubernetes-image "{{ .Values.gitlab.kubernetesImage }}" \
+              --kubernetes-namespace "{{ .Values.gitlab.kubernetesNamespace }}" && \
+            gitlab-runner run
+        env:
+          - name: CONJUR_APPLIANCE_URL
+            value: "{{ .Values.conjur.applianceUrl }}"
+          - name: CONJUR_ACCOUNT
+            value: "{{ .Values.conjur.account }}"
